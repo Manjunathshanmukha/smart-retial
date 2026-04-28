@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Billing System</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <div class="sidebar">
+    <h3 style="padding:15px;">Retail POS</h3>
+    <a href="billing.html">Billing</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+  <div class="main-content">
+    <h2>New Sale</h2>
+    <div class="card">
+      <input type="text" id="searchProduct" placeholder="Scan barcode or search...">
+      <button id="startScanner">Open Camera Scanner</button>
+      <div id="scanner-container" style="width:300px; display:none;"></div>
+      <ul id="cartItems"></ul>
+      <p>Total: ₹<span id="cartTotal">0</span></p>
+      <button id="checkoutBtn">Proceed to Pay</button>
+    </div>
+
+    <div id="paymentModal" class="modal">
+      <div class="modal-content">
+        <h3>Payment</h3>
+        <select id="paymentMethod">
+          <option value="razorpay">Razorpay</option>
+          <option value="upi">UPI (Simulated)</option>
+          <option value="cash">Cash</option>
+        </select>
+        <button id="payNowBtn">Pay Now</button>
+        <button onclick="closePaymentModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initScanner } from '../assets/js/scanner.js';
+
+    document.getElementById('searchProduct').addEventListener('keypress', async (e) => {
+      if (e.key === 'Enter') {
+        const query = e.target.value.trim();
+        if (query) {
+          const product = await searchProduct(query);
+          if (product) addToCart(product);
+          else alert('Product not found');
+          e.target.value = '';
+        }
+      }
+    });
+
+    document.getElementById('startScanner').addEventListener('click', () => {
+      const container = document.getElementById('scanner-container');
+      container.style.display = 'block';
+      initScanner('scanner-container', async (code) => {
+        const product = await searchProduct(code);
+        if (product) addToCart(product);
+        else alert('Product not found');
+        container.style.display = 'none';
+      });
+    });
+
+    document.getElementById('checkoutBtn').addEventListener('click', () => {
+      document.getElementById('paymentModal').style.display = 'flex';
+    });
+
+    document.getElementById('payNowBtn').addEventListener('click', payNow);
+  </script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/user.js"></script>
+  <script type="module">
+    import { initFCM } from '../assets/js/fcm.js';
+    initFCM();
+  </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Product Management</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+  <div class="sidebar">
+    <h3 style="padding:15px;">Admin Panel</h3>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="products.html">Products</a>
+    <a href="transactions.html">Transactions</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+  <div class="main-content">
+    <h2>Products</h2>
+    <div class="card">
+      <input type="text" id="name" placeholder="Name">
+      <input type="number" id="price" placeholder="Price" step="0.01">
+      <input type="number" id="quantity" placeholder="Quantity">
+      <input type="text" id="barcode" placeholder="Barcode">
+      <button onclick="generateBarcode()">Generate</button>
+      <svg id="barcodeSvg"></svg>
+      <button onclick="addProduct()">Add Product</button>
+    </div>
+    <table>
+      <thead><tr><th>Name</th><th>Price</th><th>Qty</th><th>Barcode</th><th>Actions</th></tr></thead>
+      <tbody id="productTableBody"></tbody>
+    </table>
+  </div>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    let products = [];
+
+    async function loadProducts() {
+      products = await fetchAPI('/api/products');
+      const tbody = document.getElementById('productTableBody');
+      tbody.innerHTML = '';
+      products.forEach(p => {
+        const row = `<tr>
+          <td>${p.name}</td><td>₹${p.price}</td><td>${p.quantity}</td><td>${p.barcode || '-'}</td>
+          <td>
+            <button onclick="deleteProduct('${p.id}')">Delete</button>
+          </td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    async function addProduct() {
+      const name = document.getElementById('name').value;
+      const price = document.getElementById('price').value;
+      const quantity = document.getElementById('quantity').value;
+      const barcode = document.getElementById('barcode').value;
+      if (!name || !price || !quantity) return alert('Fill all fields');
+      await fetchAPI('/api/products', {
+        method: 'POST',
+        body: JSON.stringify({ name, price, quantity, barcode })
+      });
+      loadProducts();
+    }
+
+    function generateBarcode() {
+      const code = Date.now().toString().slice(-12);
+      JsBarcode("#barcodeSvg", code, { format: "CODE128" });
+      document.getElementById('barcode').value = code;
+    }
+
+    async function deleteProduct(id) {
+      await fetchAPI(`/api/products/${id}`, { method: 'DELETE' });
+      loadProducts();
+    }
+
+    loadProducts();
+  </script>
+  <script src="../assets/js/ai-chat.js"></script>
+  <script type="module">
+    import { initFCM } from '../assets/js/fcm.js';
+    initFCM();
+  </script>
+</body>
+</html>

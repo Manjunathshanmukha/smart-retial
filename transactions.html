@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Transaction History</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <div class="sidebar">
+    <h3 style="padding:15px;">Admin Panel</h3>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="products.html">Products</a>
+    <a href="transactions.html">Transactions</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+  <div class="main-content">
+    <h2>Transactions</h2>
+    <input type="text" id="searchInput" placeholder="Search by date or product">
+    <table>
+      <thead><tr><th>Date</th><th>Items</th><th>Total</th><th>Method</th></tr></thead>
+      <tbody id="txBody"></tbody>
+    </table>
+  </div>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    async function loadTransactions() {
+      const trans = await fetchAPI('/api/transactions');
+      const tbody = document.getElementById('txBody');
+      tbody.innerHTML = '';
+      trans.forEach(tx => {
+        const date = tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '';
+        const items = tx.items.map(i => i.name).join(', ');
+        const row = `<tr><td>${date}</td><td>${items}</td><td>₹${tx.total}</td><td>${tx.paymentMethod}</td></tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+      const filter = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#txBody tr');
+      rows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(filter) ? '' : 'none';
+      });
+    });
+
+    loadTransactions();
+  </script>
+  <script src="../assets/js/ai-chat.js"></script>
+  <script type="module">
+    import { initFCM } from '../assets/js/fcm.js';
+    initFCM();
+  </script>
+</body>
+</html>
